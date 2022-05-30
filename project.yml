@@ -5,7 +5,4 @@ packages:
       DATABASE: "${DATABASE}"
     actions:
       - name: findAll 
-        runtime: nodejs:default
-environment:
-  DATABASE: "${DATABASE}"
-  DATABASE_URL: "${DATABASE_URL}"        
+        runtime: nodejs:default    

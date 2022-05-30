@@ -9,6 +9,13 @@ functions:
   name: gasstations
   routes:
   - path: /api
+  envs:
+  - key: DATABASE
+    scope: RUN_TIME
+    value: ${DATABASE}
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: ${DATABASE_URL}
   source_dir: /
 name: gasstations
 static_sites:
@@ -18,12 +25,6 @@ static_sites:
   - key: FUNCTION_API_URL
     scope: BUILD_TIME
     value: ${gasstations.PUBLIC_URL}
-  - key: DATABASE
-    scope: RUN_TIME
-    value: ${DATABASE}
-  - key: DATABASE_URL
-    scope: RUN_TIME
-    value: ${DATABASE_URL}
   github:
     branch: master
     deploy_on_push: true

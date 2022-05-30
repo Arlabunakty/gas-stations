@@ -16,9 +16,8 @@ async function main(args) {
     // }
 
     const client = await connect();
-    const db = await client.db(process.env.DB_DATABASE);
-    const DATABASE = process.env['DATABASE'];
-    const stationsCollection = await db.collection(DATABASE);
+    const db = await client.db(process.env.DATABASE);
+    const stationsCollection = await db.collection("stations");
     const stations = await stationsCollection.find().toArray();
 
     return {

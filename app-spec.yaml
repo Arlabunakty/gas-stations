@@ -24,7 +24,7 @@ static_sites:
   envs:
   - key: FUNCTION_API_URL
     scope: BUILD_TIME
-    value: ${gas-stations.PUBLIC_URL}
+    value: ${gas-stations-findall.PUBLIC_URL}
   github:
     branch: master
     deploy_on_push: true
@@ -33,4 +33,4 @@ static_sites:
   output_dir: dist
   routes:
   - path: /
-  source_dir: /client
+  source_dir: /web

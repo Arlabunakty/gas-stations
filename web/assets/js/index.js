@@ -36,7 +36,7 @@ function initMap() {
         const infowindow = new google.maps.InfoWindow({
             content: "N/A",
         });
-        for (const station of stations) {
+        for (const station of stations.data) {
             if (
                 station.fuelLimits.some(e => e.fuel.description.includes('95') && (e.limitType === 'BANK_CARD'
                     || e.limitType === 'CASH' || e.limitType === 'MOBILE_APP'))

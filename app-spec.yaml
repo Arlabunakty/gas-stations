@@ -1,0 +1,29 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+functions:
+- github:
+    branch: master
+    deploy_on_push: true
+    repo: Arlabunakty/gas-stations
+  name: gasstations
+  routes:
+  - path: /api
+  source_dir: /
+name: gasstations
+static_sites:
+- build_command: ./build.sh
+  environment_slug: html
+  envs:
+  - key: FUNCTION_API_URL
+    scope: BUILD_TIME
+    value: ${gasstations.PUBLIC_URL}
+  github:
+    branch: master
+    deploy_on_push: true
+    repo: Arlabunakty/gas-stations
+  name: web-app
+  output_dir: dist
+  routes:
+  - path: /
+  source_dir: /client

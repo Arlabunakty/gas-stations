@@ -1,0 +1,9 @@
+packages:
+  - name: default
+    actions:
+      - name: findAll 
+        runtime: nodejs:default
+environment:
+  # CA_CERT: $(CA_CERT)
+  DATABASE: "${DATABASE}"
+  DATABASE_URL: "${DATABASE_URL}"        

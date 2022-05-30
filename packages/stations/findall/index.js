@@ -21,9 +21,7 @@ async function main(args) {
     const stations = await stationsCollection.find().toArray();
 
     return {
-      body: {
-        stations
-      }
+      body: [stations]
     }
   } catch (error) {
     console.error(error)

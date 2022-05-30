@@ -6,7 +6,7 @@ functions:
     branch: master
     deploy_on_push: true
     repo: Arlabunakty/gas-stations
-  name: gasstations
+  name: gas-stations-findall
   routes:
   - path: /api
   envs:
@@ -17,14 +17,14 @@ functions:
     scope: RUN_TIME
     value: ${DATABASE_URL}
   source_dir: /
-name: gasstations
+name: gas-stations
 static_sites:
 - build_command: ./build.sh
   environment_slug: html
   envs:
   - key: FUNCTION_API_URL
     scope: BUILD_TIME
-    value: ${gasstations.PUBLIC_URL}
+    value: ${gas-stations.PUBLIC_URL}
   github:
     branch: master
     deploy_on_push: true

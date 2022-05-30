@@ -32,7 +32,7 @@ function initMap() {
 
     const api = $('body').data('url');
 
-    callAjax(api, (stations) => {
+    callAjax(api + "/stations/findall", (stations) => {
         const infowindow = new google.maps.InfoWindow({
             content: "N/A",
         });

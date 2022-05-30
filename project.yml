@@ -1,5 +1,5 @@
 packages:
-  - name: api
+  - name: stations
     environment:
       DATABASE_URL: "${DATABASE_URL}"
       DATABASE: "${DATABASE}"

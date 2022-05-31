@@ -19,8 +19,9 @@ async function main(args) {
     const db = await client.db(process.env.DATABASE);
     const stationsCollection = await db.collection("stations");
     const stations = await stationsCollection.find().toArray();
-
+    console.info("Found " + stations.length + " stations");
     return {
+      headers:  { 'content-type': 'application/json; charset=UTF-8' },
       body: {
         data: stations
       }

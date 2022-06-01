@@ -1,8 +1,31 @@
+function getQueryVariable(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+            return decodeURI(pair[1]);
+        }
+    }
+    return false;
+}
+
+const copyToClipboard = str => {
+    if (navigator && navigator.clipboard && navigator.clipboard.writeText)
+        return navigator.clipboard.writeText(str);
+    return Promise.reject('The Clipboard API is not available.');
+};
+
+function copyLinkCallback() {
+    copyToClipboard($('#copyLink').val());
+    $(".message").text("скопiйованно в буфер");
+}
+
 function callAjax(url, callback) {
     var xmlhttp;
     // compatible with IE7+, Firefox, Chrome, Opera, Safari
     xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function () {
+    xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             callback(JSON.parse(xmlhttp.responseText));
         }
@@ -23,60 +46,161 @@ function filter(collection, predicate) {
     return null;
 }
 
+var markersArray = new Array();
+var stationsArray = new Array();
+
+function filterAndRenderStations(map) {
+
+    var linkQuery = window.location.origin + window.location.pathname + "?";
+
+    const infowindow = new google.maps.InfoWindow({
+        content: "N/A",
+    });
+
+    const fuelsArray = $('#fuel').val();
+    if (fuelsArray.length) {
+        linkQuery += "fuel=" + fuelsArray.join(',') + "&";
+    }
+    const fuelFilterFunction = function(fuelLimit) {
+        return fuelsArray.includes(fuelLimit.fuel.normalizedStandard);
+    }
+    const limitTypeFilters = new Array();
+
+    if ($('#special').is(':checked')) {
+        linkQuery += "special=true&";
+        limitTypeFilters.push('PALYVNA_CARD');
+        limitTypeFilters.push('TALON');
+    }
+
+    if ($('#special_transport').is(':checked')) {
+        linkQuery += "special_transport=true&";
+        limitTypeFilters.push('TRANSPORT');
+    }
+
+    if ($('#money').is(':checked')) {
+        linkQuery += "money=true&";
+        limitTypeFilters.push('BANK_CARD');
+        limitTypeFilters.push('CASH');
+        limitTypeFilters.push('MOBILE_APP');
+    }
+
+    window.shareLink = linkQuery;
+
+    const specialFilterFunction = function(fuelLimit) {
+        return limitTypeFilters.includes(fuelLimit.limitType);
+    }
+
+    const filterFunction = e => fuelFilterFunction(e) && specialFilterFunction(e);
+    for (const station of stationsArray) {
+        if (station.fuelLimits.some(e => filterFunction(e))) {
+            const description = filter(station.fuelLimits, filterFunction).description;
+            const marker = new google.maps.Marker({
+                position: {
+                    lat: station.geoPoint.lat,
+                    lng: station.geoPoint.lon
+                },
+                //                    label: fuelFilter,
+                map: map,
+            });
+
+            marker.addListener("click", () => {
+                map.panTo(marker.getPosition());
+                infowindow.setContent(description);
+                infowindow.open({
+                    anchor: marker,
+                    map,
+                    shouldFocus: false,
+                });
+            });
+            markersArray.push(marker);
+        } else {
+            let url = "https://maps.google.com/mapfiles/ms/icons/" + 'purple' + "-dot.png";
+
+            const marker = new google.maps.Marker({
+                position: {
+                    lat: station.geoPoint.lat,
+                    lng: station.geoPoint.lon
+                },
+                map: map,
+                icon: {
+                    url: url,
+                    labelOrigin: new google.maps.Point(60, 30)
+                }
+            });
+            markersArray.push(marker);
+        }
+    }
+}
+
+function parseIntI(str, radix, defaultValue) {
+    const parsed = parseInt(str, radix);
+    return isNaN(parsed) ? defaultValue : parsed;
+}
+
+function parseFloatI(str, defaultValue) {
+    const parsed = parseFloat(str);
+    return isNaN(parsed) ? defaultValue : parsed;
+}
+
 function initMap() {
-    const kiev = { lat: 50.45466, lng: 30.5238 };
+    $('select').multiselect();
+    const fuelQueryParam = getQueryVariable('fuel');
+    if (fuelQueryParam) {
+        $('#fuel').multiselect('deselectAll', false)
+            .multiselect('select', fuelQueryParam.split(','), true);
+    }
+
+    $('#money').prop("checked", getQueryVariable('money'));
+    $('#special_transport').prop("checked", getQueryVariable('special_transport'));
+    $('#special').prop("checked", getQueryVariable('special'));
+
+    $('#select95AndHigher').on('click', function() {
+        $('#fuel').multiselect('deselectAll', false)
+            .multiselect('select', ['PULLS 95', 'М100', '98', 'M95', '95'], true);
+    });
+    $('#selectDieselAndHigher').on('click', function() {
+        $('#fuel').multiselect('deselectAll', false)
+            .multiselect('select', ['МДП+', 'PULLS Diesel', 'МДП', 'ДП'], true);
+    });
+    $('#selectGasAndHigher').on('click', function() {
+        $('#fuel').multiselect('deselectAll', false)
+            .multiselect('select', ['ГАЗ'], true);
+    });
+
+    const center = {
+        lat: parseFloatI(getQueryVariable('map.center.lat'), 50.45466),
+        lng: parseFloatI(getQueryVariable('map.center.lng'), 30.5238)
+    };
+    const zoom = parseIntI(getQueryVariable('map.zoom'), 10, 7);
     const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 7,
-        center: kiev,
+        zoom: zoom,
+        center: center,
+    });
+
+    window.map = map;
+
+    $('#sharemodal').on('shown.bs.modal', function() {
+        $('#copyLink').val(window.shareLink +
+            "map.center.lat=" + map.getCenter().lat() +
+            "&map.center.lng=" + map.getCenter().lng() +
+            "&map.zoom=" + map.getZoom()
+        );
     });
 
     const api = $('body').data('url');
 
     callAjax(api + "/stations/findall", (stations) => {
-        const infowindow = new google.maps.InfoWindow({
-            content: "N/A",
-        });
-        for (const station of stations.data) {
-            if (
-                station.fuelLimits.some(e => e.fuel.description.includes('95') && (e.limitType === 'BANK_CARD'
-                    || e.limitType === 'CASH' || e.limitType === 'MOBILE_APP'))
-            ) {
-                const description = filter(station.fuelLimits, limit => limit.fuel.description.includes('95')
-                    && (limit.limitType === 'BANK_CARD' || limit.limitType === 'CASH' || limit.limitType === 'MOBILE_APP')).description;
-                const marker = new google.maps.Marker({
-                    position: {
-                        lat: station.geoPoint.lat,
-                        lng: station.geoPoint.lon
-                    },
-                    label: '95',
-                    map: map,
-                });
+        stationsArray = stations.data;
 
-                marker.addListener("click", () => {
-                    infowindow.setContent(description);
-                    infowindow.open({
-                        anchor: marker,
-                        map,
-                        shouldFocus: false,
-                    });
-                });
-            } else {
-                let url = "https://maps.google.com/mapfiles/ms/icons/";
-                url += 'purple' + "-dot.png";
+        filterAndRenderStations(map);
 
-                const marker = new google.maps.Marker({
-                    position: {
-                        lat: station.geoPoint.lat,
-                        lng: station.geoPoint.lon
-                    }, map: map,
-                    icon:
-                    {
-                        url: url,
-                        labelOrigin: new google.maps.Point(60, 30)
-                    }
-                });
+        $('#go').on('click', e => {
+            while (markersArray.length) {
+                markersArray.pop()
+                    .setMap(null);
             }
-        }
+            filterAndRenderStations(map);
+        });
     });
 }
 

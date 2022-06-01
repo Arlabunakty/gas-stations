@@ -146,8 +146,12 @@ function initMap() {
     $('select').multiselect();
     const fuelQueryParam = getQueryVariable('fuel');
     if (fuelQueryParam) {
+        var fuelsArray = fuelQueryParam.split(',');
+        if (fuelsArray.includes('M95')) {
+            fuelsArray.push('М95');
+        }
         $('#fuel').multiselect('deselectAll', false)
-            .multiselect('select', fuelQueryParam.split(','), true);
+            .multiselect('select', fuelsArray, true);
     }
 
     $('#money').prop("checked", getQueryVariable('money'));
@@ -156,7 +160,7 @@ function initMap() {
 
     $('#select95AndHigher').on('click', function() {
         $('#fuel').multiselect('deselectAll', false)
-            .multiselect('select', ['PULLS 95', 'М100', '98', 'M95', '95'], true);
+            .multiselect('select', ['PULLS 95', 'М100', '98', 'М95', '95'], true);
     });
     $('#selectDieselAndHigher').on('click', function() {
         $('#fuel').multiselect('deselectAll', false)

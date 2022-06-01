@@ -59,7 +59,7 @@ function filterAndRenderStations(map) {
 
     const fuelsArray = $('#fuel').val();
     if (fuelsArray.length) {
-        linkQuery += "fuel=" + fuelsArray.join(',') + "&";
+        linkQuery += "fuel=" + encodeURI(fuelsArray.join(',')) + "&";
     }
     const fuelFilterFunction = function(fuelLimit) {
         return fuelsArray.includes(fuelLimit.fuel.normalizedStandard);

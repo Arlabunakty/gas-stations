@@ -40,10 +40,10 @@ function filter(collection, predicate) {
 
     for (var j = 0; j < length; j++) {
         if (predicate(collection[j]) == true) {
-            return collection[j];
+            result.push(collection[j]);
         }
     }
-    return null;
+    return result;
 }
 
 var markersArray = new Array();
@@ -93,7 +93,9 @@ function filterAndRenderStations(map) {
     const filterFunction = e => fuelFilterFunction(e) && specialFilterFunction(e);
     for (const station of stationsArray) {
         if (station.fuelLimits.some(e => filterFunction(e))) {
-            const description = filter(station.fuelLimits, filterFunction).description;
+            const descriptions = filter(station.fuelLimits, filterFunction)
+                .map((el, i) => el.description);
+            const description = [...new Set(descriptions)].join('\n');
             const marker = new google.maps.Marker({
                 position: {
                     lat: station.geoPoint.lat,

@@ -93,15 +93,21 @@ function filterAndRenderStations(map) {
     const filterFunction = e => fuelFilterFunction(e) && specialFilterFunction(e);
     for (const station of stationsArray) {
         if (station.fuelLimits.some(e => filterFunction(e))) {
-            const descriptions = filter(station.fuelLimits, filterFunction)
-                .map((el, i) => el.description);
-            const description = [...new Set(descriptions)].join('\n');
+            const fuelLimits = {};
+            filter(station.fuelLimits, filterFunction).forEach(el => {
+                fuelLimits[el.fuel.name] = fuelLimits[el.fuel.name] || [];
+                fuelLimits[el.fuel.name].push(el.description);
+            });
+            const descriptions = Object.entries(fuelLimits)
+                .map(([key, values], i) => key + ' - ' + [...new Set(values)].join(', '));;
+            const description = '<p><b>' + station.company + '</b></p>' +
+                '<p>' + station.description + '</p>' + descriptions.map(e => '<p>' + e + '</p>').join('');
             const marker = new google.maps.Marker({
                 position: {
                     lat: station.geoPoint.lat,
                     lng: station.geoPoint.lon
                 },
-                //                    label: fuelFilter,
+                label: station.company.substring(0, 1),
                 map: map,
             });
 
